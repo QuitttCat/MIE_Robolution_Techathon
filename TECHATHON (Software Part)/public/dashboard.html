@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - EspelliARMus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700&family=Raleway:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #fffaf3;
+            color: #1f1d1b;
+        }
+
+        .navbar {
+            background-color: #1f1d1b !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-brand, .nav-link {
+            color: #fff2e6 !important;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            color: #fea116 !important;
+        }
+
+        .container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: #1f1d1b;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            background-color: transparent;
+            color: #fea116;
+            border: 2px solid #fea116;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background-color: #fea116;
+            color: white;
+        }
+
+        .toggle-btn:not(.active):hover {
+            background-color: #ffb547;
+            color: white;
+        }
+
+        .table {
+            background-color: #fdf4e3;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .table.current-orders th,
+        .table.current-orders td {
+            width: 16.67%; /* 6 columns: 100% / 6 */
+        }
+
+        .table.served-orders th,
+        .table.served-orders td {
+            width: 20%; /* 5 columns: 100% / 5 */
+        }
+
+        .table th {
+            background-color: #1f1d1b;
+            color: #fff2e6;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 600;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #1f1d1b;
+        }
+
+        .order-description {
+            cursor: pointer;
+            color: #fea116;
+            text-decoration: underline;
+        }
+
+        .order-description:hover {
+            color: #ffb547;
+        }
+
+        .expand-row {
+            background-color: #fff5e8;
+            border-top: 1px solid #e0d4c0;
+        }
+
+        .expand-row td {
+            padding: 1rem;
+            font-style: italic;
+            color: #555;
+        }
+
+        .expand-row .total-price {
+            font-weight: 700;
+            color: #fea116;
+            margin-top: 0.5rem;
+        }
+
+        .status-preparing {
+            background-color: #fea116;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status-finished {
+            background-color: #28a745;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-check-order {
+            background-color: #fea116;
+            border: none;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-check-order:hover {
+            background-color: #ffb547;
+        }
+
+        .btn-check-order i {
+            font-size: 1.2rem;
+        }
+
+        @keyframes highlightNewOrder {
+  0% { background-color: #fff9d9; }
+  100% { background-color: transparent; }
+}
+.new-order-row {
+  animation: highlightNewOrder 10s ease-out;
+}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top py-0">
+        <div class="container">
+          <a class="navbar-brand fs-3 fw-bold" href="#">EspelliARMus</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#addFoodModal">Add Foods</a>
+                  </li>
+
+                  <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#addTableModal">Add Table</a>
+                  </li>
+                
+                  <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#viewStatsModal">View Statistics</a>
+                  </li>
+                  
+                  
+              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      
+
+    <div class="container">
+        <h2 class="section-title text-center">Admin Orders Dashboard</h2>
+        <p class="text-center text-muted mb-4">Manage current and served orders for EspelliARMus</p>
+
+        <div class="d-flex justify-content-center mb-4">
+            <button class="btn toggle-btn me-2 active" id="showCurrent">Current Orders</button>
+            <button class="btn toggle-btn" id="showServed">Served Orders</button>
+        </div>
+
+        <div id="currentOrders">
+            <table class="table table-hover current-orders">
+                <thead>
+                    <tr>
+                        <th>Order No</th>
+                        <th>Order Time</th>
+                        <th>Table</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="currentOrdersBody"></tbody>
+            </table>
+        </div>
+
+        <div id="servedOrders" class="d-none">
+            <table class="table table-hover served-orders">
+                <thead>
+                    <tr>
+                        <th>Order No</th>
+                        <th>Order Time</th>
+                        <th>Table</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="servedOrdersBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- Add Food Modal -->
+<div class="modal fade" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="background-color: #fffaf3; border: 2px solid #fea116; border-radius: 1rem;">
+        <div class="modal-header" style="background-color: #1f1d1b;">
+          <h5 class="modal-title text-white" id="addFoodModalLabel">🍽️ Add New Food Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addFoodForm">
+            <div class="mb-3">
+              <label class="form-label">Item Name</label>
+              <input type="text" class="form-control" id="item_name" placeholder="Enter food name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="description" placeholder="Enter food description" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Price ($)</label>
+              <input type="number" step="0.01" class="form-control" id="price" placeholder="Enter price" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Rating (0-5)</label>
+              <input type="number" step="0.1" class="form-control" id="rating" placeholder="Enter rating" min="0" max="5">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Availability</label>
+              <select class="form-select" id="availability">
+                <option value="true">Available</option>
+                <option value="false">Not Available</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Discount Percentage (%)</label>
+              <input type="number" step="1" class="form-control" id="discount_percentage" placeholder="Enter discount" min="0" max="100">
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn" style="background-color: #fea116; color: white;">Add Food</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Table Modal -->
+<div class="modal fade" id="addTableModal" tabindex="-1" aria-labelledby="addTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="background-color: #fffaf3; border: 2px solid #fea116; border-radius: 1rem;">
+        <div class="modal-header" style="background-color: #1f1d1b;">
+          <h5 class="modal-title text-white" id="addTableModalLabel">🪑 Add New Table</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addTableForm">
+            <div class="mb-3">
+              <label class="form-label">Table Capacity</label>
+              <input type="number" class="form-control" id="table_capacity" placeholder="Enter number of seats" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Availability</label>
+              <select class="form-select" id="table_availability">
+                <option value="true">Available</option>
+                <option value="false">Not Available</option>
+              </select>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn" style="background-color: #fea116; color: white;">Add Table</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<!-- View Stats Modal -->
+<div class="modal fade" id="viewStatsModal" tabindex="-1" aria-labelledby="viewStatsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+      <div class="modal-content" style="background-color: #fffaf3; border: 2px solid #fea116; border-radius: 1rem;">
+          <div class="modal-header" style="background-color: #1f1d1b;">
+              <h5 class="modal-title text-white" id="viewStatsModalLabel">📊 Restaurant Statistics</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+          </div>
+          <div class="modal-body">
+              <div class="mb-3">
+                  <h6>⏳ Average Fulfillment Time:</h6>
+                  <p id="avgFulfillmentTime" class="text-dark">Loading...</p>
+              </div>
+              <div class="mb-3">
+                  <h6>💵 Total Sales (Last 24 Hours):</h6>
+                  <p id="totalSales" class="text-dark">Loading...</p>
+              </div>
+              <hr>
+              <h6>Advanced Sales Reports</h6>
+              <div class="accordion" id="salesReportsAccordion">
+                  <!-- Top-Selling Items -->
+                  <div class="accordion-item">
+                      <h2 class="accordion-header">
+                          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#topSellingItems" aria-expanded="true" aria-controls="topSellingItems">
+                              Top-Selling Items
+                          </button>
+                      </h2>
+                      <div id="topSellingItems" class="accordion-collapse collapse show" data-bs-parent="#salesReportsAccordion">
+                          <div class="accordion-body">
+                              <p id="topSellingItemsDesc" class="text-muted mb-2"></p>
+                              <table class="table table-sm">
+                                  <thead>
+                                      <tr>
+                                          <th>Item Name</th>
+                                          <th>Quantity Sold</th>
+                                          <th>Revenue</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="topSellingItemsBody"></tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Peak Order Times -->
+                  <div class="accordion-item">
+                      <h2 class="accordion-header">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#peakOrderTimes" aria-expanded="false" aria-controls="peakOrderTimes">
+                              Peak Order Times
+                          </button>
+                      </h2>
+                      <div id="peakOrderTimes" class="accordion-collapse collapse" data-bs-parent="#salesReportsAccordion">
+                          <div class="accordion-body">
+                              <p id="peakOrderTimesDesc" class="text-muted mb-2"></p>
+                              <table class="table table-sm">
+                                  <thead>
+                                      <tr>
+                                          <th>Hour</th>
+                                          <th>Orders</th>
+                                          <th>Revenue</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="peakOrderTimesBody"></tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Table Utilization -->
+                  <div class="accordion-item">
+                      <h2 class="accordion-header">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tableUtilization" aria-expanded="false" aria-controls="tableUtilization">
+                              Table Utilization
+                          </button>
+                      </h2>
+                      <div id="tableUtilization" class="accordion-collapse collapse" data-bs-parent="#salesReportsAccordion">
+                          <div class="accordion-body">
+                              <p id="tableUtilizationDesc" class="text-muted mb-2"></p>
+                              <table class="table table-sm">
+                                  <thead>
+                                      <tr>
+                                          <th>Table ID</th>
+                                          <th>Capacity</th>
+                                          <th>Orders</th>
+                                          <th>Revenue</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="tableUtilizationBody"></tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Items for Discount -->
+                  <div class="accordion-item">
+                      <h2 class="accordion-header">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#itemsForDiscount" aria-expanded="false" aria-controls="itemsForDiscount">
+                              Items for Discount
+                          </button>
+                      </h2>
+                      <div id="itemsForDiscount" class="accordion-collapse collapse" data-bs-parent="#salesReportsAccordion">
+                          <div class="accordion-body">
+                              <p id="itemsForDiscountDesc" class="text-muted mb-2"></p>
+                              <table class="table table-sm">
+                                  <thead>
+                                      <tr>
+                                          <th>Item Name</th>
+                                          <th>Price</th>
+                                          <th>Current Discount %</th>
+                                          <th>Quantity Sold</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="itemsForDiscountBody"></tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+
+
+  <!-- Success Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <div id="successToast" class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true" style="background-color: #fea116;">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Added successfully!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Order Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1060;">
+  <div id="newOrderToast" class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true" style="background-color: #28a745;">
+    <div class="d-flex">
+      <div class="toast-body">
+        ✅ New order has arrived!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<audio id="newOrderSound" src="/notification.mp3" preload="auto"></audio>
+
+
+  
+  
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+
+
+        document.getElementById('addFoodForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+        
+            const newItem = {
+              item_name: document.getElementById('item_name').value,
+              description: document.getElementById('description').value,
+              price: parseFloat(document.getElementById('price').value),
+              rating: parseFloat(document.getElementById('rating').value),
+              availability: document.getElementById('availability').value === 'true',
+              discount_percentage: parseFloat(document.getElementById('discount_percentage').value)
+            };
+        
+            try {
+              const res = await fetch('/add-item', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newItem)
+              });
+        
+              if (res.ok) {
+                const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                toast.show();
+                document.getElementById('addFoodForm').reset();
+                var modal = bootstrap.Modal.getInstance(document.getElementById('addFoodModal'));
+                modal.hide();
+              } else {
+                alert('❌ Failed to add food item.');
+              }
+            } catch (err) {
+              console.error('❌ Error adding food:', err);
+              alert('❌ Something went wrong.');
+            }
+          });
+
+
+          document.getElementById('addTableForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+        
+            const newTable = {
+              capacity: parseInt(document.getElementById('table_capacity').value),
+              availability: document.getElementById('table_availability').value === 'true'
+            };
+        
+            try {
+              const res = await fetch('/add-restaurant-table', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTable)
+              });
+        
+              if (res.ok) {
+                const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                toast.show();
+                document.getElementById('addTableForm').reset();
+                var modal = bootstrap.Modal.getInstance(document.getElementById('addTableModal'));
+                modal.hide();
+              } else {
+                alert('❌ Failed to add table.');
+              }
+            } catch (err) {
+              console.error('❌ Error adding table:', err);
+              alert('❌ Something went wrong.');
+            }
+          });
+
+
+
+// Load stats when opening View Stats modal
+document.getElementById('viewStatsModal').addEventListener('show.bs.modal', async function () {
+  try {
+      // Fetch existing stats
+      const statsRes = await fetch('/api/stats');
+      const stats = await statsRes.json();
+
+      document.getElementById('avgFulfillmentTime').textContent = `${stats.avgMinutes} minutes`;
+      document.getElementById('totalSales').textContent = `$${stats.totalSales}`;
+
+      // Fetch advanced sales report
+      const salesRes = await fetch('/api/reports/advanced-sales');
+      const salesReport = await salesRes.json();
+
+      // Render Top-Selling Items
+      document.getElementById('topSellingItemsDesc').textContent = salesReport.topSellingItems.description;
+      const topSellingItemsBody = document.getElementById('topSellingItemsBody');
+      topSellingItemsBody.innerHTML = salesReport.topSellingItems.data.map(item => `
+          <tr>
+              <td>${item.item_name}</td>
+              <td>${item.total_quantity_sold}</td>
+              <td>$${parseFloat(item.total_revenue).toFixed(2)}</td>
+          </tr>
+      `).join('');
+
+      // Render Peak Order Times
+      document.getElementById('peakOrderTimesDesc').textContent = salesReport.peakOrderTimes.description;
+      const peakOrderTimesBody = document.getElementById('peakOrderTimesBody');
+      peakOrderTimesBody.innerHTML = salesReport.peakOrderTimes.data.map(time => `
+          <tr>
+              <td>${time.order_hour}:00</td>
+              <td>${time.total_orders}</td>
+              <td>$${parseFloat(time.total_revenue).toFixed(2)}</td>
+          </tr>
+      `).join('');
+
+      // Render Table Utilization
+      document.getElementById('tableUtilizationDesc').textContent = salesReport.tableUtilization.description;
+      const tableUtilizationBody = document.getElementById('tableUtilizationBody');
+      tableUtilizationBody.innerHTML = salesReport.tableUtilization.data.map(table => `
+          <tr>
+              <td>${table.table_id}</td>
+              <td>${table.capacity}</td>
+              <td>${table.total_orders}</td>
+              <td>$${parseFloat(table.total_revenue || 0).toFixed(2)}</td>
+          </tr>
+      `).join('');
+
+      // Render Items for Discount
+      document.getElementById('itemsForDiscountDesc').textContent = salesReport.itemsForDiscount.description;
+      const itemsForDiscountBody = document.getElementById('itemsForDiscountBody');
+      itemsForDiscountBody.innerHTML = salesReport.itemsForDiscount.data.map(item => `
+          <tr>
+              <td>${item.item_name}</td>
+              <td>$${parseFloat(item.price).toFixed(2)}</td>
+              <td>${item.discount_percentage}%</td>
+              <td>${item.total_quantity_sold}</td>
+          </tr>
+      `).join('');
+  } catch (err) {
+      console.error('Error loading stats:', err);
+      document.getElementById('avgFulfillmentTime').textContent = 'Failed to load.';
+      document.getElementById('totalSales').textContent = 'Failed to load.';
+      // Clear sales report tables on error
+      ['topSellingItemsBody', 'peakOrderTimesBody', 'tableUtilizationBody', 'itemsForDiscountBody'].forEach(id => {
+          document.getElementById(id).innerHTML = '<tr><td colspan="4">Failed to load data.</td></tr>';
+      });
+  }
+}); 
+
+
+
+        let orderDetails = {};
+        async function generateReceiptPDF(package_id) {
+          try {
+            // Fetch receipt data from API
+            const res = await fetch(`/api/paymentreceipt/${package_id}`);
+            if (!res.ok) {
+              throw new Error(`Failed to fetch receipt: ${res.statusText}`);
+            }
+            const receipt = await res.json();
+
+            // Initialize jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const margin = 10;
+            let y = 10;
+
+            // Add title
+            doc.setFontSize(16);
+            doc.text('EspelliARMus Receipt', margin, y);
+            y += 10;
+
+            // Add order details
+            doc.setFontSize(12);
+            doc.text(`Package ID: ${receipt.package_id}`, margin, y);
+            y += 7;
+            doc.text(`Order Time: ${receipt.order_time}`, margin, y);
+            y += 7;
+            doc.text(`Completion Time: ${receipt.completion_time}`, margin, y);
+            y += 7;
+            doc.text(`Table No: ${receipt.table_no}`, margin, y);
+            y += 10;
+
+            // Add items header
+            doc.setFontSize(14);
+            doc.text('Items:', margin, y);
+            y += 7;
+
+            // Add items
+            doc.setFontSize(10);
+            receipt.items.forEach(item => {
+              const itemText = `${item.item_name} (x${item.count})`;
+              const priceText = `Total: $${item.total}, After Discount: $${item.total_after_discount}`;
+              doc.text(itemText, margin, y);
+              doc.text(priceText, margin + 100, y); // Align price to the right
+              y += 7;
+            });
+
+            // Add grand total
+            y += 5;
+            doc.setFontSize(12);
+            doc.text(`Grand Total: $${receipt.grand_total}`, margin, y);
+
+            // Save and download PDF
+            doc.save(`receipt_${package_id}.pdf`);
+          } catch (err) {
+            console.error('Error generating receipt PDF:', err);
+            alert('Failed to generate receipt PDF.');
+          }
+        }
+
+        let previousPendingCount = 0;
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/orders');
+                const orders = await res.json();
+
+                const currentOrdersBody = document.getElementById('currentOrdersBody');
+                const servedOrdersBody = document.getElementById('servedOrdersBody');
+
+                currentOrdersBody.innerHTML = '';
+                servedOrdersBody.innerHTML = '';
+
+                let currentPendingCount = 0;
+
+                for (const order of orders) {
+                    const orderRow = document.createElement('tr');
+
+                    if (order.status === 'pending' && currentPendingCount > previousPendingCount) {
+                    orderRow.classList.add('new-order-row');
+} 
+
+                    orderRow.innerHTML = `
+                        <td>#${order.package_id}</td>
+                        <td>${new Date(order.order_at).toLocaleString()}</td>
+                        <td>${order.table}</td>
+                        <td><span class="order-description" data-order-id="${order.package_id}">View Order</span></td>
+                        <td><span class="${order.status === 'pending' ? 'status-preparing' : 'status-finished'}">${order.status === 'pending' ? 'Preparing' : 'Finished'}</span></td>
+                        ${order.status === 'pending' ? `<td><button class="btn btn-check-order" data-order-id="${order.package_id}"><i class="fas fa-check"></i></button></td>` : ''}
+                    `;
+
+                    if (order.status === 'pending') {
+                        currentOrdersBody.appendChild(orderRow);
+                        currentPendingCount++;
+                    } else {
+                        servedOrdersBody.appendChild(orderRow);
+                    }
+
+                    orderDetails[order.package_id] = {
+                        items: order.items,
+                        totalPrice: `$${order.total_price.toFixed(2)}`
+                    };
+                }
+
+                // 🛎️ Check if a new order came
+        if (currentPendingCount > previousPendingCount) {
+            const toast = new bootstrap.Toast(document.getElementById('newOrderToast'));
+            toast.show();
+
+            const audio = document.getElementById('newOrderSound');
+            if (audio) {
+                audio.play().catch(err => {
+                    console.error('Audio play error:', err);
+                });
+            }
+        }
+
+        // 🔥 Update the previousPendingCount to the current one
+        previousPendingCount = currentPendingCount;
+
+    } catch (err) {
+        console.error('Error loading orders:', err);
+    }
+        }
+
+        loadOrders();
+
+        setInterval(loadOrders, 5000);
+
+        document.addEventListener('click', async (e) => {
+            // Toggle buttons
+            if (e.target.id === 'showCurrent') {
+                document.getElementById('currentOrders').classList.remove('d-none');
+                document.getElementById('servedOrders').classList.add('d-none');
+                e.target.classList.add('active');
+                document.getElementById('showServed').classList.remove('active');
+            }
+
+            if (e.target.id === 'showServed') {
+                document.getElementById('servedOrders').classList.remove('d-none');
+                document.getElementById('currentOrders').classList.add('d-none');
+                e.target.classList.add('active');
+                document.getElementById('showCurrent').classList.remove('active');
+            }
+
+            // Expand order description
+            if (e.target.classList.contains('order-description')) {
+                const orderId = e.target.dataset.orderId;
+                const row = e.target.closest('tr');
+                const existingExpandRow = row.nextElementSibling;
+
+                if (existingExpandRow && existingExpandRow.classList.contains('expand-row')) {
+                    existingExpandRow.remove();
+                    return;
+                }
+
+                const details = orderDetails[orderId] || { items: [], totalPrice: '$0.00' };
+                const detailHtml = details.items.map(item => `${item.food} (x${item.count})`).join(', ');
+                const expandRow = document.createElement('tr');
+                expandRow.classList.add('expand-row');
+                const colspan = row.closest('table').classList.contains('current-orders') ? 6 : 5;
+                expandRow.innerHTML = `
+                    <td colspan="${colspan}">
+                        ${detailHtml}<br>
+                        <span class="total-price">Total: ${details.totalPrice}</span>
+                    </td>
+                `;
+                row.insertAdjacentElement('afterend', expandRow);
+            }
+
+            // Mark order as served
+            if (e.target.closest('.btn-check-order')) {
+                const button = e.target.closest('.btn-check-order');
+                const orderId = button.dataset.orderId;
+
+                try {
+                    const res = await fetch('/api/mark-served', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ package_id: orderId })
+                    });
+
+                    const result = await res.json();
+                    if (result.success) {
+                        loadOrders();
+                        generateReceiptPDF(orderId)
+
+                    } else {
+                        alert('Failed to mark order as served.');
+                    }
+                } catch (err) {
+                    console.error('Error marking as served:', err);
+                }
+            }
+        });
+    </script>
+
+    
+
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+    background: url('../img/loginbg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+
+  .bg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  
+  
+  
+  .card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+ 
+  
+  
+  
+  @keyframes pop-in {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  form {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  
+  form.d-none {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+  }
+  
+
+
+  .text-theme {
+    color: #fea116;
+  }
+  
+  
+  .btn-outline-theme {
+    border: 2px solid #fea116;
+    background-color: #fea116;
+    color: white;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .btn-outline-theme:hover {
+    background-color: #fea116;
+    color: white;
+    transform: scale(1.03);
+  }
+  
+  input:focus, textarea:focus {
+    border-color: #fea116;
+    box-shadow: 0 0 0 0.2rem rgba(254, 161, 22, 0.25);
+  }
+  
+  .btn-theme {
+    background-color: #fea116;
+    color: white;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .btn-theme:hover {
+    background-color: #ffb547;
+    color: white;
+    transform: scale(1.03);
+  }
+
+  .toggle-btn {
+    min-width: 100px;
+    font-weight: 600;
+    border: 2px solid #fea116;
+    transition: all 0.3s ease;
+  }
+  
+  .toggle-btn.active {
+    background-color: #fea116;
+    color: white;
+  }
+  
+  .toggle-btn:not(.active) {
+    background-color: white;
+    color: #fea116;
+    border: 2px solid #fea116;
+    transform: scale(0.95);
+
+  }
+  
+
+  .auth-box input,
+  .auth-box textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .auth-box input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .auth-box .btn-theme {
+    background-color: #fea116;
+    border: none;
+  }
+  
+  .auth-box .btn-theme:hover {
+    background-color: #ffb547;
+  }
+
+  .auth-box .btn-theme {
+    background-color: #e6951c;
+    color: white;
+  }
+  
+  .auth-box .btn-theme:hover {
+    background-color: #d28514;
+  }
+  .auth-box .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .auth-box p.fst-italic {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .auth-box input,
+  .auth-box textarea {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    backdrop-filter: blur(2px);
+  }
+  
+  .auth-box input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .toggle-btn {
+    background-color: transparent;
+    color: #e6951c;
+    border: 2px solid #e6951c;
+  }
+  
+  .toggle-btn.active {
+    background-color: #e6951c;
+    color: white;
+  }
+  
+  .toggle-btn:not(.active) {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+  
+
+  

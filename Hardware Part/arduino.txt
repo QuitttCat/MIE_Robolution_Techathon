@@ -1,0 +1,549 @@
+#include <LiquidCrystal.h>
+
+// LCD pins: RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+
+// Button pin definitions
+const int BUTTON_MENU = 2;   // Button 1 - Menu/Reset
+const int BUTTON_SELECT = 3; // Button 2 - Select/Confirm
+const int BUTTON_UP = 4;     // Button 3 - Scroll Up / Increment
+const int BUTTON_DOWN = 5;   // Button 4 - Scroll Down / Decrement
+int table_id=1;
+
+// Debounce
+const int DEBOUNCE_DELAY = 50;
+
+// Button state tracking
+bool lastButtonUp = LOW;
+bool lastButtonDown = LOW;
+bool lastButtonMenu = LOW;
+bool lastButtonSelect = LOW;
+
+
+
+
+// Menu Item Structure
+struct MenuItem {
+  String name;
+  float price;
+  float rating;
+  bool availability;
+  float discount;
+  int item_id;
+};
+
+MenuItem menuItems[5]; // Array to hold up to 5 menu items
+int totalMenuItems = 0; // Number of items parsed
+int currentMenuIndex = 0; // Index of the current selected item
+int cartQuantities[5] = {0, 0, 0, 0, 0}; // Quantities for each item
+
+// State control
+bool inQuantityAdjust = false;
+int quantitySelected = 1;
+
+// Long press detection
+unsigned long pressStartTime = 0;
+bool longPressDetected = false;
+const unsigned long LONG_PRESS_DURATION = 500; // 2 seconds
+unsigned long startMillis;  // Store the start time in milliseconds
+unsigned long currentMillis;  // Current time in milliseconds
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  pinMode(BUTTON_MENU, INPUT_PULLUP);
+  pinMode(BUTTON_SELECT, INPUT_PULLUP);
+  pinMode(BUTTON_UP, INPUT_PULLUP);
+  pinMode(BUTTON_DOWN, INPUT_PULLUP);
+  
+   startMillis = millis();
+
+  // Wait for data to be sent from Serial Monitor
+  while (!Serial) {
+    // Wait for serial port to connect
+  }
+
+  Serial.println("Send menu items in the following format:");
+  Serial.println("Item ID: X, Item: Y, Price: Z, Rating: W, Availability: true/false, Discount: %");
+}
+
+void loop() {
+  handleButtons();
+
+  // If Serial data is available
+  if (Serial.available() > 0) {
+    String inputData = Serial.readStringUntil('\n');  // Read one line of input
+    parseMenuItem(inputData);  // Parse the input data into the menu items array
+  }
+}
+
+void handleButtons() {
+  bool currentButtonMenu = digitalRead(BUTTON_MENU);
+  bool currentButtonSelect = digitalRead(BUTTON_SELECT);
+  bool currentButtonUp = digitalRead(BUTTON_UP);
+  bool currentButtonDown = digitalRead(BUTTON_DOWN);
+
+  // Button Menu (RESET)
+  if (lastButtonMenu == LOW && currentButtonMenu == HIGH) {
+    resetOrder();
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonMenu = currentButtonMenu;
+
+  // Button Select (detect long press)
+  if (lastButtonSelect == LOW && currentButtonSelect == HIGH) {
+    pressStartTime = millis(); // Start the timer when button pressed
+    longPressDetected = false;
+  }
+
+  if (lastButtonSelect == HIGH && currentButtonSelect == HIGH) {
+    int passedTime = millis() - pressStartTime;
+    if (passedTime >= LONG_PRESS_DURATION && !longPressDetected) {
+      submitOrder();
+      longPressDetected = true;
+    }
+  }
+
+  if (lastButtonSelect == HIGH && currentButtonSelect == LOW) {
+    if (!longPressDetected) {
+      if (!inQuantityAdjust) {
+        openQuantityDialog();
+      } else {
+        addToCart();
+      }
+    }
+    pressStartTime = 0;
+    longPressDetected = false;
+  }
+  lastButtonSelect = currentButtonSelect;
+
+  // Button Up (move menu up / increment quantity)
+  if (lastButtonUp == LOW && currentButtonUp == HIGH) {
+    if (!inQuantityAdjust) {
+      currentMenuIndex = (currentMenuIndex - 1 + totalMenuItems) % totalMenuItems;
+      showMainMenu();
+    } else {
+      quantitySelected++;
+      showQuantityDialog();
+    }
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonUp = currentButtonUp;
+
+  // Button Down (move menu down / decrement quantity)
+  if (lastButtonDown == LOW && currentButtonDown == HIGH) {
+    if (!inQuantityAdjust) {
+      currentMenuIndex = (currentMenuIndex + 1) % totalMenuItems;
+      showMainMenu();
+    } else {
+      if (quantitySelected > 1) quantitySelected--;
+      showQuantityDialog();
+    }
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonDown = currentButtonDown;
+}
+
+void showMainMenu() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(menuItems[currentMenuIndex].name); // Display the name of the current menu item
+  lcd.print(menuItems[currentMenuIndex].availability? " Y":" N");
+  lcd.setCursor(0, 1);
+  lcd.print(menuItems[currentMenuIndex].price);
+  lcd.print("$ ");
+  lcd.print("(-");
+  lcd.print(menuItems[currentMenuIndex].discount);
+  lcd.print("%)");
+}
+
+void openQuantityDialog() {
+  inQuantityAdjust = true;
+  quantitySelected = 1;
+  showQuantityDialog();
+}
+
+void showQuantityDialog() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(menuItems[currentMenuIndex].name); // Display the name of the current item
+  lcd.setCursor(0, 1);
+  lcd.print("Count: ");
+  lcd.print(quantitySelected);
+}
+
+void addToCart() {
+  cartQuantities[currentMenuIndex] += quantitySelected;
+  inQuantityAdjust = false;
+  showMainMenu();
+}
+
+void submitOrder() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+
+  // Get the current time using millis and convert it into a simple format
+  currentMillis = millis();
+  unsigned long elapsedTime = currentMillis - startMillis;  // Time elapsed since the start
+
+  // Convert elapsed time into hours, minutes, and seconds
+  unsigned long seconds = elapsedTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  unsigned long days = hours / 24;
+  hours %= 24;
+  minutes %= 60;
+  seconds %= 60;
+
+  // Create a timestamp in a simple format
+  String timestamp = String(2025) + "-" + String(4) + "-" + String(26) + " " +  // Fixed date for now
+                     String(hours) + ":" + String(minutes) + ":" + String(seconds);
+  String package_id = String(table_id) + timestamp;
+
+// Print the order header
+Serial.println("Method: POST, Route: /add-order-package, Data: {\"package_id\":\"" + package_id +
+               "\", \"order_at\":\"" + timestamp + "\", \"completed_at\":null, \"total_price\":0, \"status\":\"pending\", \"table_id\":" + String(table_id) + "}");
+
+// Iterate through cart items and print them
+for (int i = 0; i < totalMenuItems; i++) {
+    if (cartQuantities[i] > 0) {
+        Serial.println("Method: POST, Route: /add-cart-item, Data: {\"package_id\":\"" + package_id + "\", \"item_id\":" +
+                       String(menuItems[i].item_id) + ", \"count\":" + String(cartQuantities[i]) + "}");
+    }
+}
+
+
+  // Reset the order after submission
+  delay(3000);
+  resetOrder();
+}
+
+void resetOrder() {
+  for (int i = 0; i < totalMenuItems; i++) {
+    cartQuantities[i] = 0;
+  }
+  inQuantityAdjust = false;
+  currentMenuIndex = 0;
+  showMainMenu();
+}
+
+
+void parseMenuItem(String inputData) {
+  // Format: Item ID: 1, Item: Burger, Price: 5.99, Rating: 4.5, Availability: true/false, Discount: %
+
+  MenuItem item;
+  
+  // Parse Item ID
+  int idStart = inputData.indexOf("Item ID:") + 9;
+  int idEnd = inputData.indexOf(", Item:");
+  item.item_id = inputData.substring(idStart, idEnd).toInt();
+
+  // Parse Name
+  int nameStart = inputData.indexOf("Item:") + 6;
+  int nameEnd = inputData.indexOf(", Price:");
+  item.name = inputData.substring(nameStart, nameEnd);
+
+  // Parse Price
+  int priceStart = inputData.indexOf("Price:") + 7;
+  int priceEnd = inputData.indexOf(", Rating:");
+  item.price = inputData.substring(priceStart, priceEnd).toFloat();
+
+  // Parse Rating
+  int ratingStart = inputData.indexOf("Rating:") + 8;
+  int ratingEnd = inputData.indexOf(", Availability:");
+  item.rating = inputData.substring(ratingStart, ratingEnd).toFloat();
+
+  // Parse Availability
+  int availStart = inputData.indexOf("Availability:") + 14;
+  int availEnd = inputData.indexOf(", Discount:");
+  String availStr = inputData.substring(availStart, availEnd);
+  item.availability = (availStr == "true");
+
+  // Parse Discount
+  int discountStart = inputData.indexOf("Discount:") + 10;
+  item.discount = inputData.substring(discountStart).toFloat();
+
+  // Add item to menuItems array
+  if (totalMenuItems < 5) {
+    menuItems[totalMenuItems++] = item;  // Add item to the array
+    showMainMenu();  // Update LCD with the first menu item
+  } else {
+    Serial.println("Menu full! Can't add more items.");
+  }
+}
+//v2--------------------------------------------------
+
+
+#include <LiquidCrystal.h>
+
+// LCD pins: RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+
+// Button pin definitions
+const int BUTTON_MENU = 2;   // Button 1 - Menu/Reset
+const int BUTTON_SELECT = 3; // Button 2 - Select/Confirm
+const int BUTTON_UP = 4;     // Button 3 - Scroll Up / Increment
+const int BUTTON_DOWN = 5;   // Button 4 - Scroll Down / Decrement
+int table_id=1;
+
+// Debounce
+const int DEBOUNCE_DELAY = 50;
+
+// Button state tracking
+bool lastButtonUp = LOW;
+bool lastButtonDown = LOW;
+bool lastButtonMenu = LOW;
+bool lastButtonSelect = LOW;
+
+
+
+
+// Menu Item Structure
+struct MenuItem {
+  String name;
+  float price;
+  float rating;
+  bool availability;
+  float discount;
+  int item_id;
+};
+
+MenuItem menuItems[5]; // Array to hold up to 5 menu items
+int totalMenuItems = 0; // Number of items parsed
+int currentMenuIndex = 0; // Index of the current selected item
+int cartQuantities[5] = {0, 0, 0, 0, 0}; // Quantities for each item
+
+// State control
+bool inQuantityAdjust = false;
+int quantitySelected = 1;
+
+// Long press detection
+unsigned long pressStartTime = 0;
+bool longPressDetected = false;
+const unsigned long LONG_PRESS_DURATION = 500; // 2 seconds
+unsigned long startMillis;  // Store the start time in milliseconds
+unsigned long currentMillis;  // Current time in milliseconds
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  pinMode(BUTTON_MENU, INPUT_PULLUP);
+  pinMode(BUTTON_SELECT, INPUT_PULLUP);
+  pinMode(BUTTON_UP, INPUT_PULLUP);
+  pinMode(BUTTON_DOWN, INPUT_PULLUP);
+  
+   startMillis = millis();
+
+  // Wait for data to be sent from Serial Monitor
+  while (!Serial) {
+    // Wait for serial port to connect
+  }
+
+  Serial.println("Send menu items in the following format:");
+  Serial.println("Item ID: X, Item: Y, Price: Z, Rating: W, Availability: true/false, Discount: %");
+}
+
+void loop() {
+  handleButtons();
+
+  // If Serial data is available
+  if (Serial.available() > 0) {
+    String inputData = Serial.readStringUntil('\n');  // Read one line of input
+    parseMenuItem(inputData);  // Parse the input data into the menu items array
+  }
+}
+
+void handleButtons() {
+  bool currentButtonMenu = digitalRead(BUTTON_MENU);
+  bool currentButtonSelect = digitalRead(BUTTON_SELECT);
+  bool currentButtonUp = digitalRead(BUTTON_UP);
+  bool currentButtonDown = digitalRead(BUTTON_DOWN);
+
+  // Button Menu (RESET)
+  if (lastButtonMenu == LOW && currentButtonMenu == HIGH) {
+    resetOrder();
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonMenu = currentButtonMenu;
+
+  // Button Select (detect long press)
+  if (lastButtonSelect == LOW && currentButtonSelect == HIGH) {
+    pressStartTime = millis(); // Start the timer when button pressed
+    longPressDetected = false;
+  }
+
+  if (lastButtonSelect == HIGH && currentButtonSelect == HIGH) {
+    int passedTime = millis() - pressStartTime;
+    if (passedTime >= LONG_PRESS_DURATION && !longPressDetected) {
+      submitOrder();
+      longPressDetected = true;
+    }
+  }
+
+  if (lastButtonSelect == HIGH && currentButtonSelect == LOW) {
+    if (!longPressDetected) {
+      if (!inQuantityAdjust) {
+        openQuantityDialog();
+      } else {
+        addToCart();
+      }
+    }
+    pressStartTime = 0;
+    longPressDetected = false;
+  }
+  lastButtonSelect = currentButtonSelect;
+
+  // Button Up (move menu up / increment quantity)
+  if (lastButtonUp == LOW && currentButtonUp == HIGH) {
+    if (!inQuantityAdjust) {
+      currentMenuIndex = (currentMenuIndex - 1 + totalMenuItems) % totalMenuItems;
+      showMainMenu();
+    } else {
+      quantitySelected++;
+      showQuantityDialog();
+    }
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonUp = currentButtonUp;
+
+  // Button Down (move menu down / decrement quantity)
+  if (lastButtonDown == LOW && currentButtonDown == HIGH) {
+    if (!inQuantityAdjust) {
+      currentMenuIndex = (currentMenuIndex + 1) % totalMenuItems;
+      showMainMenu();
+    } else {
+      if (quantitySelected > 1) quantitySelected--;
+      showQuantityDialog();
+    }
+    delay(DEBOUNCE_DELAY);
+  }
+  lastButtonDown = currentButtonDown;
+}
+
+void showMainMenu() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(menuItems[currentMenuIndex].name); // Display the name of the current menu item
+  lcd.print(menuItems[currentMenuIndex].availability? " Y":" N");
+  lcd.setCursor(0, 1);
+  lcd.print(menuItems[currentMenuIndex].price);
+  lcd.print("$ ");
+  lcd.print("(-");
+  lcd.print(menuItems[currentMenuIndex].discount);
+  lcd.print("%)");
+}
+
+void openQuantityDialog() {
+  inQuantityAdjust = true;
+  quantitySelected = 1;
+  showQuantityDialog();
+}
+
+void showQuantityDialog() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(menuItems[currentMenuIndex].name); // Display the name of the current item
+  lcd.setCursor(0, 1);
+  lcd.print("Count: ");
+  lcd.print(quantitySelected);
+}
+
+void addToCart() {
+  cartQuantities[currentMenuIndex] += quantitySelected;
+  inQuantityAdjust = false;
+  showMainMenu();
+}
+
+void submitOrder() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+
+  // Get the current time using millis and convert it into a simple format
+  currentMillis = millis();
+  unsigned long elapsedTime = currentMillis - startMillis;  // Time elapsed since the start
+
+  // Convert elapsed time into hours, minutes, and seconds
+  unsigned long seconds = elapsedTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  unsigned long days = hours / 24;
+  hours %= 24;
+  minutes %= 60;
+  seconds %= 60;
+
+  // Create a timestamp in a simple format
+  String timestamp = String(2025) + "-" + String(4) + "-" + String(26) + " " +  // Fixed date for now
+                     String(hours) + ":" + String(minutes) + ":" + String(seconds);
+  String package_id = String(table_id) + timestamp;
+
+// Print the order header
+Serial.println("Method: POST, Route: /add-order-package, Data: {\"package_id\":\"" + package_id +
+               "\", \"order_at\":\"" + timestamp + "\", \"completed_at\":null, \"total_price\":0, \"status\":\"pending\", \"table_id\":" + String(table_id) + "}");
+
+// Iterate through cart items and print them
+for (int i = 0; i < totalMenuItems; i++) {
+    if (cartQuantities[i] > 0) {
+        Serial.println("Method: POST, Route: /add-cart-item, Data: {\"package_id\":\"" + package_id + "\", \"item_id\":" +
+                       String(menuItems[i].item_id) + ", \"count\":" + String(cartQuantities[i]) + "}");
+    }
+}
+
+
+  // Reset the order after submission
+  delay(3000);
+  resetOrder();
+}
+
+void resetOrder() {
+  for (int i = 0; i < totalMenuItems; i++) {
+    cartQuantities[i] = 0;
+  }
+  inQuantityAdjust = false;
+  currentMenuIndex = 0;
+  showMainMenu();
+}
+
+
+void parseMenuItem(String inputData) {
+  // Format: Item ID: 1, Item: Burger, Price: 5.99, Rating: 4.5, Availability: true/false, Discount: %
+
+  MenuItem item;
+  
+  // Parse Item ID
+  int idStart = inputData.indexOf("Item ID:") + 9;
+  int idEnd = inputData.indexOf(", Item:");
+  item.item_id = inputData.substring(idStart, idEnd).toInt();
+
+  // Parse Name
+  int nameStart = inputData.indexOf("Item:") + 6;
+  int nameEnd = inputData.indexOf(", Price:");
+  item.name = inputData.substring(nameStart, nameEnd);
+
+  // Parse Price
+  int priceStart = inputData.indexOf("Price:") + 7;
+  int priceEnd = inputData.indexOf(", Rating:");
+  item.price = inputData.substring(priceStart, priceEnd).toFloat();
+
+  // Parse Rating
+  int ratingStart = inputData.indexOf("Rating:") + 8;
+  int ratingEnd = inputData.indexOf(", Availability:");
+  item.rating = inputData.substring(ratingStart, ratingEnd).toFloat();
+
+  // Parse Availability
+  int availStart = inputData.indexOf("Availability:") + 14;
+  int availEnd = inputData.indexOf(", Discount:");
+  String availStr = inputData.substring(availStart, availEnd);
+  item.availability = (availStr == "true");
+
+  // Parse Discount
+  int discountStart = inputData.indexOf("Discount:") + 10;
+  item.discount = inputData.substring(discountStart).toFloat();
+
+  // Add item to menuItems array
+  if (totalMenuItems < 5) {
+    menuItems[totalMenuItems++] = item;  // Add item to the array
+    showMainMenu();  // Update LCD with the first menu item
+  } else {
+    Serial.println("Menu full! Can't add more items.");
+  }
+}

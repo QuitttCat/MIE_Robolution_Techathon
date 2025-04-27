@@ -1,0 +1,330 @@
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 120px;
+}
+
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    color: #333;
+  }
+
+  .navbar {
+    background-color: #1f1d1b !important; /* warm dark tone */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  }
+  
+  .navbar .nav-link {
+    color: #fff2e6;
+    font-weight: 500;
+    margin: 0 10px;
+    transition: color 0.2s;
+  }
+  
+  .navbar .nav-link:hover,
+  .navbar .nav-link.active {
+    color: #fea116;
+  }
+  
+  
+  /* Scrolled state */
+  .navbar.scrolled {
+    background-color: rgba(31, 29, 27, 0.95) !important;
+    backdrop-filter: blur(2px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  
+  
+  .loginbtn .btn-theme {
+    background-color: #fea116;
+    color: white;
+    font-weight: 600;
+    border: none;
+  }
+  
+  .loginbtn .btn-theme:hover {
+    background-color: #ffb547;
+  }
+  
+  
+  
+  .hero-section {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    background: url('../img/hero-bg.jpg') center center / cover no-repeat;
+    background-color: rgba(0, 0, 0, 0.6);
+    background-blend-mode: darken;
+    text-align: center;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+  .hero-section h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff2e6;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+  }
+  
+  .hero-section p {
+    font-size: 1.25rem;
+    margin-top: 1rem;
+    letter-spacing: 0.5px;
+    color: #ffe0b3;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .hero-section .btn.book-btn {
+    background-color: #fea116;
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+  
+  .hero-section .btn.book-btn:hover {
+    background-color: #ffae32;
+  }
+  
+  .hero-section .btn.btn-order {
+    background-color: #ff884b;
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    color: white;
+    transition: background 0.3s ease;
+  }
+  
+  .hero-section .btn.btn-order:hover {
+    background-color: #ff9e68;
+  }
+  
+  
+
+  .about-section {
+    background-color: #fffaf3;
+    color: #333;
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  
+  .about-section .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: #1f1d1b;
+    margin-bottom: 1rem;
+  }
+  
+  .about-section .text-theme {
+    color: #fea116;
+  }
+  
+  .about-section .about-img img {
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+
+
+  .menu-section {
+    background-color: #fdf4e3; /* warm beige or light latte */
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+    border-top: 1px solid #e0d4c0;
+  }
+  
+  
+  .menu-section .menu-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .menu-section .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: #1f1d1b;
+    margin-bottom: 0.5rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+
+  .menu-section .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1f1d1b;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.3px;
+    
+  }
+  
+  .menu-section .section-subtitle {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fea116;
+    letter-spacing: 1px;
+    
+  }
+  
+  
+  .menu-section h3 {
+    font-size: 1.5rem;
+    color: #fea116;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  .menu-section h5 {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f1d1b;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+  }
+  
+  .menu-section p {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.95rem;
+    color: #555;
+    font-style: italic;
+  }
+  
+  .menu-section span {
+    font-weight: 700;
+    color: #fea116;
+    font-size: 1rem;
+  }
+
+  .menu-item {
+    
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    
+  }
+  
+  .menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    
+  }
+
+  .menu-item:hover .menu-img {
+    filter: brightness(1.05);
+    transform: scale(1.02);
+    transition: transform 0.3s, filter 0.3s;
+  }
+  
+  @media (min-width: 768px) {
+    .menu-section .col-md-6:nth-child(odd) {
+      border-right: 1px solid #e0d4c0;
+      padding-right: 2rem;
+    }
+  
+    .menu-section .col-md-6:nth-child(even) {
+      padding-left: 2rem;
+    }
+  }
+
+  
+
+  .reservation-section {
+    background-color: #fffaf3;
+  }
+
+  .reservation-section .section-title {
+    font-family: 'Abril Fatface', serif;
+    font-size: 3rem;
+    color: #1f1d1b;
+    letter-spacing: 0.5px;
+  }
+  
+  .reservation-section .section-subtitle {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.2rem;
+    color: #fea116;
+    letter-spacing: 1px;
+    text-transform: none;
+  }
+  
+  
+  #reservation-form {
+    background-color: #fff5e8;
+  }
+  
+  #reservation-form input,
+  #reservation-form textarea {
+    border-radius: 8px;
+    border: 1px solid #e0d4c0;
+    font-size: 0.95rem;
+  }
+  
+  #reservation-form input:focus,
+  #reservation-form textarea:focus {
+    border-color: #fea116;
+    box-shadow: 0 0 0 0.2rem rgba(254, 161, 22, 0.25);
+  }
+  
+  #reservation-form .btn-primary {
+    background-color: #fea116;
+    border: none;
+    font-weight: 600;
+  }
+  
+  #reservation-form .btn-primary:hover {
+    background-color: #ffb547;
+  }
+
+
+  .footer-section {
+    background-color: #1f1d1b;
+    color: #fff2e6;
+  }
+  
+  .footer-section .text-theme {
+    color: #fea116;
+  }
+  
+  .footer-section a {
+    text-decoration: none;
+    color: #fff2e6;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section a:hover {
+    color: #fea116;
+  }
+
+  #backToTop {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #fea116;
+    color: white;
+    border: none;
+    z-index: 999;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+    display: none;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  #backToTop:hover {
+    background-color: #ffb547;
+    transform: scale(1.1);
+  }
+  
+  
+  

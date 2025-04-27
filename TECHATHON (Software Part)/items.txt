@@ -1,0 +1,6 @@
+2025-04-27 14:44:52
+Item ID: 1, Item: Kacchi, Price: 400, Rating: 0, Availability: true, Discount: 8%
+Item ID: 2, Item: Pasta, Price: 200, Rating: 0, Availability: true, Discount: 7%
+Item ID: 3, Item: Grilled Chicken, Price: 300, Rating: 0, Availability: true, Discount: 5%
+Item ID: 4, Item: Milkshake, Price: 100, Rating: 0, Availability: true, Discount: 10%
+Item ID: 5, Item: Reshmi Kabab, Price: 200, Rating: 0, Availability: true, Discount: 6%

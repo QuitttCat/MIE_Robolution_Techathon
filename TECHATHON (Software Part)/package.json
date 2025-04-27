@@ -1,0 +1,20 @@
+{
+  "name": "restaurant_trial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "nodemailer": "^6.10.1",
+    "pg": "^8.15.6",
+    "postgres": "^3.4.5",
+    "socket.io": "^4.8.1"
+  }
+}
